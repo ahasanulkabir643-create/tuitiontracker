@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TuitionTrack</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f10;--bg2:#18181b;--bg3:#232327;--bg4:#2e2e34;
+  --border:#3a3a42;--border2:#4a4a56;
+  --text:#f0eff4;--text2:#a09eb8;--text3:#6b6980;
+  --accent:#c4b5fd;--accent2:#7c6fcd;--accent3:#4f3fa8;
+  --red:#f87171;--red-bg:#2d1515;--red-border:#5c2020;
+  --green:#4ade80;--green-bg:#0f2d1a;--green-border:#1a5c35;
+  --amber:#fbbf24;
+  --r:8px;--r2:12px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+input,select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.5rem .75rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:.15s}
+input:focus,select:focus{border-color:var(--accent2);background:var(--bg2)}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
+input[type=number]::-webkit-inner-spin-button{opacity:.4}
+select option{background:var(--bg3)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* SCREEN SYSTEM */
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+
+/* AUTH */
+.auth-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem}
+.auth-card{width:100%;max-width:400px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:2rem}
+.logo{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:300;color:var(--accent)}
+.logo-sub{color:var(--text3);font-size:12px;margin-bottom:1.75rem;margin-top:.2rem}
+.tabs{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.5rem}
+.tab{flex:1;padding:.5rem;border:none;background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;transition:.15s}
+.tab.active{background:var(--bg4);color:var(--text)}
+.field{margin-bottom:.9rem}
+.field label{display:block;font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.err-msg{color:var(--red);font-size:12px;margin-bottom:.75rem;min-height:18px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:.45rem .9rem;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:.15s;white-space:nowrap;vertical-align:middle}
+.btn:hover{background:var(--bg3);border-color:var(--accent2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:var(--accent3);border-color:var(--accent2);width:100%;justify-content:center;padding:.6rem}
+.btn-primary:hover{background:var(--accent2)}
+.btn-sm{padding:.28rem .6rem;font-size:12px}
+.btn-danger{border-color:var(--red-border);color:var(--red)}
+.btn-danger:hover{background:var(--red-bg)}
+.btn-success{border-color:var(--green-border);color:var(--green)}
+.btn-success:hover{background:var(--green-bg)}
+.btn-icon{padding:.28rem .5rem}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.5rem;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:20}
+.nav-logo{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:300;color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:.75rem}
+.nav-user{font-size:12px;color:var(--text3)}
+
+/* MAIN */
+.main{flex:1;padding:1.5rem;max-width:1300px;margin:0 auto;width:100%}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:.7rem;margin-bottom:1.4rem}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:.75rem 1rem}
+.stat-label{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem}
+.stat-val{font-family:'DM Mono',monospace;font-size:1.25rem;font-weight:500}
+.c-red{color:var(--red)}.c-green{color:var(--green)}.c-amber{color:var(--amber)}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:.7rem;margin-bottom:1rem;flex-wrap:wrap}
+.toolbar-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:300;flex:1;min-width:120px}
+.filter-toggle{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.filter-btn{padding:.32rem .75rem;border:none;background:transparent;color:var(--text2);cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;transition:.15s}
+.filter-btn.active{background:var(--bg4);color:var(--text)}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r2);background:var(--bg2)}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th{padding:.55rem 1rem;text-align:left;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:var(--bg3);font-weight:400;cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{color:var(--text2)}
+th.no-sort{cursor:default}
+th.no-sort:hover{color:var(--text3)}
+td{padding:.7rem 1rem;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.018)}
+.s-name{font-weight:500;font-size:14px}
+.s-meta{font-size:11px;color:var(--text3);margin-top:1px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;letter-spacing:.03em}
+.badge-due{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.badge-ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.prog-wrap{display:flex;align-items:center;gap:.5rem;min-width:110px}
+.prog-bar{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;background:var(--accent2);transition:.3s}
+.prog-fill.full{background:var(--red)}
+.prog-txt{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;white-space:nowrap}
+.act-cell{display:flex;gap:.35rem;flex-wrap:wrap;align-items:center}
+.mono{font-family:'DM Mono',monospace;font-size:13px}
+
+/* EMPTY */
+.empty{text-align:center;padding:4rem 2rem;color:var(--text3)}
+.empty svg{margin:0 auto 1rem;display:block;opacity:.2}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.modal-title{font-family:'Fraunces',serif;font-size:1.15rem;font-weight:300}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.modal-footer{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.25rem}
+.hint{font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:.9rem}
+
+/* HISTORY */
+.hist-list{display:flex;flex-direction:column;gap:.45rem;margin-top:.5rem}
+.hist-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.55rem .75rem;display:flex;justify-content:space-between;align-items:center}
+.hist-date{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px}
+.hist-amt{font-family:'DM Mono',monospace;font-size:13px;color:var(--green)}
+.sec-hd{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding-bottom:.4rem;border-bottom:1px solid var(--border);margin-bottom:.7rem}
+.total-row{display:flex;justify-content:space-between;padding-top:.75rem;border-top:1px solid var(--border);margin-top:.75rem}
+
+@media(max-width:640px){
+  .main{padding:1rem}
+  .form-row{grid-template-columns:1fr}
+  .nav{padding:.6rem 1rem}
+  .stats{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="screen-auth" class="screen active">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="logo">TuitionTrack</div>
+      <div class="logo-sub">Private tuition management for teachers</div>
+      <div class="tabs">
+        <button class="tab active" id="tab-login" onclick="switchTab('login')">Sign in</button>
+        <button class="tab" id="tab-signup" onclick="switchTab('signup')">Create account</button>
+      </div>
+      <div id="field-name" class="field" style="display:none">
+        <label>Full name</label>
+        <input type="text" id="inp-name" placeholder="Your name" oninput="clearErr()"/>
+      </div>
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="inp-email" placeholder="you@example.com" oninput="clearErr()" onkeydown="if(event.key==='Enter')doAuth()"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="inp-pass" placeholder="Min 6 characters" oninput="clearErr()" onkeydown="if(event.key==='Enter')doAuth()"/>
+      </div>
+      <div class="err-msg" id="auth-err"></div>
+      <button class="btn btn-primary" onclick="doAuth()" id="auth-btn">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="screen-app" class="screen">
+  <nav class="nav">
+    <div class="nav-logo">TuitionTrack</div>
+    <div class="nav-right">
+      <span class="nav-user" id="nav-user"></span>
+      <button class="btn btn-sm" onclick="doLogout()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign out
+      </button>
+    </div>
+  </nav>
+  <div class="main">
+    <div class="stats" id="stats-row"></div>
+    <div class="toolbar">
+      <div class="toolbar-title">All Students</div>
+      <div class="filter-toggle">
+        <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">All</button>
+        <button class="filter-btn" id="filter-due" onclick="setFilter('due')">Due only</button>
+      </div>
+      <button class="btn" onclick="openStudentModal(null)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add student
+      </button>
+    </div>
+    <div id="table-container"></div>
+  </div>
+</div>
+
+<!-- STUDENT MODAL -->
+<div class="overlay" id="student-modal" style="display:none" onclick="if(event.target===this)closeStudentModal()">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title" id="smodal-title">Add student</span>
+      <button class="btn btn-sm btn-icon" onclick="closeStudentModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="field">
+      <label>Student name</label>
+      <input type="text" id="s-name" placeholder="Full name"/>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Class / Grade</label>
+        <input type="text" id="s-class" placeholder="e.g. 9 or SSC"/>
+      </div>
+      <div class="field">
+        <label>Location</label>
+        <input type="text" id="s-location" placeholder="e.g. Dhanmondi"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Salary (BDT)</label>
+        <input type="number" id="s-salary" placeholder="e.g. 5000" min="0"/>
+      </div>
+      <div class="field">
+        <label>Cycle length (classes)</label>
+        <input type="number" id="s-cycle" placeholder="12" min="1" max="200" value="12"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Schedule start date</label>
+      <input type="date" id="s-startdate"/>
+    </div>
+    <p class="hint" id="cycle-hint">Payment becomes due after every 12 classes.</p>
+    <div class="err-msg" id="smodal-err"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeStudentModal()">Cancel</button>
+      <button class="btn btn-primary" style="width:auto;padding:.5rem 1.25rem" onclick="saveStudent()" id="smodal-save">Add student</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="overlay" id="history-modal" style="display:none" onclick="if(event.target===this)closeHistoryModal()">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title" id="hmodal-name"></div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px" id="hmodal-sub"></div>
+      </div>
+      <button class="btn btn-sm btn-icon" onclick="closeHistoryModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="hmodal-body"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeHistoryModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DB ───────────────────────────────────────────────────────────────────────
+const DB_KEY = 'tt_v2';
+let DB = (() => { try { return JSON.parse(localStorage.getItem(DB_KEY)) || {users:[],students:[]}; } catch { return {users:[],students:[]}; } })();
+const save = () => localStorage.setItem(DB_KEY, JSON.stringify(DB));
+
+// ─── SESSION ──────────────────────────────────────────────────────────────────
+let session = (() => { try { return JSON.parse(sessionStorage.getItem('tt_sess')) || null; } catch { return null; } })();
+const saveSession = s => { session = s; sessionStorage.setItem('tt_sess', JSON.stringify(s)); };
+const clearSession = () => { session = null; sessionStorage.removeItem('tt_sess'); };
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+const fmt = n => Number(n).toLocaleString('en-BD');
+const fmtDate = d => { if(!d) return '—'; return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); };
+const today = () => new Date().toISOString().split('T')[0];
+const isDue = s => s.classesCount >= s.cycleLength;
+const calcNextDue = s => {
+  const base = s.lastPaymentDate || s.startDate;
+  if(!base) return null;
+  const d = new Date(base);
+  d.setDate(d.getDate() + Math.round(s.cycleLength * (7/3)));
+  return d.toISOString().split('T')[0];
+};
+const myStudents = () => DB.students.filter(s => s.userId === session.userId);
+const simpleHash = p => { let h=0; for(let i=0;i<p.length;i++) h=Math.imul(31,h)+p.charCodeAt(i)|0; return h.toString(36); };
+
+// ─── SORT STATE ───────────────────────────────────────────────────────────────
+let sortKey = 'nextDue', sortAsc = true, filterMode = 'all';
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+if(session) showApp(); else showAuth();
+
+function showAuth() {
+  document.getElementById('screen-auth').className='screen active';
+  document.getElementById('screen-app').className='screen';
+}
+function showApp() {
+  document.getElementById('screen-auth').className='screen';
+  document.getElementById('screen-app').className='screen active';
+  document.getElementById('nav-user').textContent = session.name;
+  renderDashboard();
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+let authTab = 'login';
+function switchTab(t) {
+  authTab = t;
+  document.getElementById('tab-login').className = 'tab'+(t==='login'?' active':'');
+  document.getElementById('tab-signup').className = 'tab'+(t==='signup'?' active':'');
+  document.getElementById('field-name').style.display = t==='signup'?'block':'none';
+  document.getElementById('auth-btn').textContent = t==='login'?'Sign in':'Create account';
+  clearErr();
+}
+function clearErr() { document.getElementById('auth-err').textContent=''; }
+function setErr(msg) { document.getElementById('auth-err').textContent=msg; }
+
+function doAuth() {
+  const email = document.getElementById('inp-email').value.trim().toLowerCase();
+  const pass = document.getElementById('inp-pass').value;
+  const name = document.getElementById('inp-name').value.trim();
+  if(!email || !pass) { setErr('Email and password are required.'); return; }
+  if(!email.includes('@')) { setErr('Enter a valid email address.'); return; }
+
+  if(authTab==='signup') {
+    if(!name) { setErr('Name is required.'); return; }
+    if(pass.length<6) { setErr('Password must be at least 6 characters.'); return; }
+    if(DB.users.find(u=>u.email===email)) { setErr('An account with this email already exists.'); return; }
+    const user = {id:Date.now().toString(36)+Math.random().toString(36).slice(2), email, name, password:simpleHash(pass)};
+    DB.users.push(user); save();
+    saveSession({userId:user.id, name:user.name, email:user.email});
+  } else {
+    const user = DB.users.find(u=>u.email===email && u.password===simpleHash(pass));
+    if(!user) { setErr('Invalid email or password.'); return; }
+    saveSession({userId:user.id, name:user.name, email:user.email});
+  }
+  showApp();
+}
+
+function doLogout() { clearSession(); showAuth(); }
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  renderStats();
+  renderTable();
+}
+
+function renderStats() {
+  const students = myStudents();
+  const due = students.filter(isDue).length;
+  const revenue = students.reduce((a,s)=>a+s.salary,0);
+  const dueRev = students.filter(isDue).reduce((a,s)=>a+s.salary,0);
+  document.getElementById('stats-row').innerHTML = `
+    ${statCard('Total students', students.length, userIcon())}
+    ${statCard('Payments due', due, alertIcon(), due>0?'c-red':'')}
+    ${statCard('Cleared', students.length-due, checkIcon(), 'c-green')}
+    ${statCard('Monthly income', 'BDT '+fmt(revenue), trendIcon())}
+    ${statCard('Dues pending', 'BDT '+fmt(dueRev), clockIcon(), dueRev>0?'c-amber':'')}
+  `;
+}
+
+function statCard(label, val, icon, cls='') {
+  return `<div class="stat"><div class="stat-label">${icon}${label}</div><div class="stat-val ${cls}">${val}</div></div>`;
+}
+
+function setFilter(f) {
+  filterMode = f;
+  document.getElementById('filter-all').className='filter-btn'+(f==='all'?' active':'');
+  document.getElementById('filter-due').className='filter-btn'+(f==='due'?' active':'');
+  renderTable();
+}
+
+function doSort(key) {
+  if(sortKey===key) sortAsc=!sortAsc; else { sortKey=key; sortAsc=true; }
+  renderTable();
+}
+
+function sortedStudents() {
+  let arr = myStudents();
+  if(filterMode==='due') arr=arr.filter(isDue);
+  arr.sort((a,b)=>{
+    let c=0;
+    if(sortKey==='nextDue') { const da=calcNextDue(a)||'9999-12-31', db=calcNextDue(b)||'9999-12-31'; c=da.localeCompare(db); }
+    else if(sortKey==='name') c=a.name.localeCompare(b.name);
+    else if(sortKey==='salary') c=a.salary-b.salary;
+    else if(sortKey==='progress') c=(a.classesCount/a.cycleLength)-(b.classesCount/b.cycleLength);
+    return sortAsc?c:-c;
+  });
+  return arr;
+}
+
+function sortArrow(key) {
+  if(sortKey!==key) return '<span style="opacity:.2;font-size:10px">↕</span>';
+  return sortAsc?'<span style="font-size:10px">↑</span>':'<span style="font-size:10px">↓</span>';
+}
+
+function renderTable() {
+  const students = sortedStudents();
+  const container = document.getElementById('table-container');
+  if(students.length===0) {
+    container.innerHTML=`<div class="empty">${userIconLg()}<div>${filterMode==='due'?'No payments due right now.':'No students yet. Add your first student to get started.'}</div></div>`;
+    return;
+  }
+  container.innerHTML=`
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr>
+      <th onclick="doSort('name')">Student ${sortArrow('name')}</th>
+      <th onclick="doSort('salary')">Salary / BDT ${sortArrow('salary')}</th>
+      <th onclick="doSort('progress')">Progress ${sortArrow('progress')}</th>
+      <th class="no-sort">Status</th>
+      <th onclick="doSort('nextDue')">Next due ${sortArrow('nextDue')}</th>
+      <th class="no-sort">Actions</th>
+    </tr></thead>
+    <tbody>${students.map(studentRow).join('')}</tbody>
+  </table>
+  </div>`;
+}
+
+function studentRow(s) {
+  const due = isDue(s);
+  const pct = Math.min(1, s.classesCount/s.cycleLength);
+  const pctW = Math.round(pct*100);
+  return `<tr>
+    <td><div class="s-name">${esc(s.name)}</div><div class="s-meta">Class ${esc(s.class)} · ${esc(s.location)}</div></td>
+    <td><div class="mono">BDT ${fmt(s.salary)}</div><div class="s-meta">per session</div></td>
+    <td>
+      <div class="prog-wrap">
+        <div class="prog-bar"><div class="prog-fill${pct>=1?' full':''}" style="width:${pctW}%"></div></div>
+        <span class="prog-txt">${s.classesCount}/${s.cycleLength}</span>
+      </div>
+      ${s.lastClassDate?`<div class="s-meta" style="margin-top:3px">Last: ${fmtDate(s.lastClassDate)}</div>`:''}
+    </td>
+    <td><span class="badge ${due?'badge-due':'badge-ok'}">${due?'DUE':'CLEARED'}</span></td>
+    <td>
+      <div class="mono" style="font-size:12px">${fmtDate(calcNextDue(s))}</div>
+      <div class="s-meta">${s.lastPaymentDate?'Paid '+fmtDate(s.lastPaymentDate):'Since '+fmtDate(s.startDate)}</div>
+    </td>
+    <td>
+      <div class="act-cell">
+        ${!due?`<button class="btn btn-sm" onclick="markClass('${s.id}')">${checkSqIcon()} Class done</button>`:''}
+        ${due?`<button class="btn btn-sm btn-success" onclick="clearPayment('${s.id}')">${shieldIcon()} Clear payment</button>`:''}
+        <button class="btn btn-sm btn-icon" title="Edit" onclick="openStudentModal('${s.id}')">${editIcon()}</button>
+        <button class="btn btn-sm btn-icon" title="History" onclick="openHistory('${s.id}')">${clockIcon()}</button>
+        <button class="btn btn-sm btn-icon btn-danger" title="Delete" onclick="deleteStudent('${s.id}')">${trashIcon()}</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+// ─── ACTIONS ──────────────────────────────────────────────────────────────────
+function markClass(id) {
+  const s = DB.students.find(x=>x.id===id);
+  if(!s) return;
+  s.classesCount++;
+  s.lastClassDate = today();
+  save(); renderDashboard();
+}
+
+function clearPayment(id) {
+  const s = DB.students.find(x=>x.id===id);
+  if(!s) return;
+  s.payments = s.payments||[];
+  s.payments.push({id:Date.now().toString(36), date:today(), amount:s.salary});
+  s.lastPaymentDate = today();
+  s.classesCount = 0;
+  save(); renderDashboard();
+}
+
+function deleteStudent(id) {
+  if(!confirm('Remove this student? This cannot be undone.')) return;
+  DB.students = DB.students.filter(s=>s.id!==id);
+  save(); renderDashboard();
+}
+
+// ─── STUDENT MODAL ────────────────────────────────────────────────────────────
+let editingId = null;
+function openStudentModal(id) {
+  editingId = id;
+  const s = id ? DB.students.find(x=>x.id===id) : null;
+  document.getElementById('smodal-title').textContent = s?'Edit student':'Add student';
+  document.getElementById('smodal-save').textContent = s?'Save changes':'Add student';
+  document.getElementById('s-name').value = s?.name||'';
+  document.getElementById('s-class').value = s?.class||'';
+  document.getElementById('s-location').value = s?.location||'';
+  document.getElementById('s-salary').value = s?.salary||'';
+  document.getElementById('s-cycle').value = s?.cycleLength||12;
+  document.getElementById('s-startdate').value = s?.startDate||today();
+  document.getElementById('smodal-err').textContent='';
+  updateCycleHint();
+  document.getElementById('student-modal').style.display='flex';
+  document.getElementById('s-name').focus();
+}
+function closeStudentModal() { document.getElementById('student-modal').style.display='none'; }
+function updateCycleHint() {
+  const v = document.getElementById('s-cycle').value||12;
+  document.getElementById('cycle-hint').textContent=`Payment becomes due after every ${v} classes.`;
+}
+document.getElementById('s-cycle').addEventListener('input', updateCycleHint);
+
+function saveStudent() {
+  const name = document.getElementById('s-name').value.trim();
+  const cls = document.getElementById('s-class').value.trim();
+  const loc = document.getElementById('s-location').value.trim();
+  const salary = parseFloat(document.getElementById('s-salary').value);
+  const cycle = parseInt(document.getElementById('s-cycle').value)||12;
+  const startDate = document.getElementById('s-startdate').value;
+  const errEl = document.getElementById('smodal-err');
+
+  if(!name||!cls||!loc||!startDate) { errEl.textContent='Please fill in all required fields.'; return; }
+  if(isNaN(salary)||salary<=0) { errEl.textContent='Enter a valid salary amount.'; return; }
+
+  if(editingId) {
+    const s = DB.students.find(x=>x.id===editingId);
+    if(s) Object.assign(s,{name,class:cls,location:loc,salary,cycleLength:cycle,startDate});
+  } else {
+    DB.students.push({
+      id: Date.now().toString(36)+Math.random().toString(36).slice(2),
+      userId: session.userId,
+      name, class:cls, location:loc, salary, cycleLength:cycle, startDate,
+      classesCount:0, lastClassDate:null, lastPaymentDate:null, payments:[]
+    });
+  }
+  save(); closeStudentModal(); renderDashboard();
+}
+
+// ─── HISTORY MODAL ────────────────────────────────────────────────────────────
+function openHistory(id) {
+  const s = DB.students.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('hmodal-name').textContent='Payment history';
+  document.getElementById('hmodal-sub').textContent=`${s.name} · Class ${s.class}`;
+  const payments=[...(s.payments||[])].reverse();
+  const total=payments.reduce((a,p)=>a+p.amount,0);
+  let body='';
+  if(payments.length===0) {
+    body='<div class="empty" style="padding:2rem 1rem;font-size:13px">No payment history yet.</div>';
+  } else {
+    body=`<div class="sec-hd">Payment records</div><div class="hist-list">`;
+    payments.forEach(p=>{
+      body+=`<div class="hist-item">
+        <div><div style="font-size:13px;font-weight:500">Payment cleared</div><div class="hist-date">${fmtDate(p.date)}</div></div>
+        <div class="hist-amt">BDT ${fmt(p.amount)}</div>
+      </div>`;
+    });
+    body+=`</div><div class="total-row"><span style="font-size:12px;color:var(--text3)">Total received</span><span class="mono" style="color:var(--green)">BDT ${fmt(total)}</span></div>`;
+  }
+  document.getElementById('hmodal-body').innerHTML=body;
+  document.getElementById('history-modal').style.display='flex';
+}
+function closeHistoryModal() { document.getElementById('history-modal').style.display='none'; }
+
+// ─── KEYBOARD ────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape') { closeStudentModal(); closeHistoryModal(); }
+});
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ─── ICONS ────────────────────────────────────────────────────────────────────
+const ic = (path,w=14) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+const userIcon=()=>ic('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',13);
+const alertIcon=()=>ic('<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',13);
+const checkIcon=()=>ic('<polyline points="20 6 9 17 4 12"/>',13);
+const trendIcon=()=>ic('<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',13);
+const clockIcon=()=>ic('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',13);
+const editIcon=()=>ic('<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>');
+const trashIcon=()=>ic('<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>');
+const checkSqIcon=()=>ic('<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',12);
+const shieldIcon=()=>ic('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',12);
+const userIconLg=()=>ic('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',48);
+</script>
+</body>
+</html>
